@@ -1,0 +1,26 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@shopify/typescript"
+  ],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": 0,
+    "@typescript-eslint/ban-types": 0,
+    "@typescript-eslint/no-var-requires": 0,
+    "import/no-unresolved": 0,
+    "no-console": 0,
+    "no-catch-shadow": 0,
+    "@shopify/binary-assignment-parens": 0,
+    "no-empty-pattern": 0,
+    "no-warning-comments": 0,
+    "prefer-rest-params": 0,
+    "object-shorthand": 0
+  }
+}
