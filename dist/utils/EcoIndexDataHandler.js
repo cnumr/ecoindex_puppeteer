@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EcoIndexDataHandler = exports.ECOINDEX_HANDLER_OPTIONS = exports.EcoIndexMetrics = void 0;
-const convert = require('convert-pro');
+const { default: convert } = require('convert-pro');
 /**
  * EcoIndex metrics.
  */

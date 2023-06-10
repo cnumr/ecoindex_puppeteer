@@ -3,7 +3,7 @@
  */
 import {CDPSession, Handler, Page} from 'puppeteer-core';
 
-const convert = require('convert-pro');
+const {default: convert} = require('convert-pro');
 
 /**
  * EcoIndex metrics.
