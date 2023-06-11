@@ -7,7 +7,7 @@
  * The same quantile index for each parameters should
  */
 import {EcoIndexPage} from '../src/EcoIndexPage';
-import {EcoIndexMetrics} from '../dist/utils/EcoIndexDataHandler';
+import {EcoIndexMetrics} from '../src/utils/EcoIndexDataHandler';
 
 import {checkMetrics, getBrowser} from './utils/commons';
 

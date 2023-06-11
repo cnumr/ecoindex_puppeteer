@@ -11,5 +11,4 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run build
-#      - run: node ./node_modules/puppeteer/install.js
       - run: npm test
