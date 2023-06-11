@@ -12,6 +12,7 @@ export const ECOINDEX_STORY_EVENTS = {
   AFTER_INIT: 'Ecoindex Story - After initialization',
   BEFORE_ADD_STEP: 'Ecoindex Story - Before add step',
   AFTER_ADD_STEP: 'Ecoindex Story - After add step',
+  ON_STOP: 'Ecoindex Story - Stop',
 };
 
 /**
@@ -111,6 +112,7 @@ export class EcoIndexStory extends AbstractEventsClass {
    */
   async stop(name: string): Promise<void> {
     await this.addStep(name);
+    await this.trigger(ECOINDEX_STORY_EVENTS.ON_STOP, this.eventData);
     return this.handler?.stop();
   }
 
@@ -121,5 +123,12 @@ export class EcoIndexStory extends AbstractEventsClass {
    */
   getSteps(): EcoIndexStoryStep[] {
     return this.steps;
+  }
+
+  /**
+   * Clear steps.
+   */
+  clear() {
+    this.steps = [];
   }
 }

@@ -3,30 +3,40 @@ import {expect} from 'chai';
 
 import {EcoIndexMetrics} from '../../dist/utils/EcoIndexDataHandler';
 
+
+let browser: any;
+
 /**
  * Return base browser for testing.
  *
  * @returns {Promise<Browser>}
  */
 export async function getBrowser() {
+  if (!browser) {
+    console.log(`==> Create browser`)
+    const options = {
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--show-paint-rects',
+      ],
+      viewport: {
+        width: 1920, height: 1080, isMobile: false,
+      },
+      timeout: 180000,
+      ignoreHTTPSErrors: true,
+      ignoreDefaultArgs: ['--disable-gpu'],
+    };
+    // @ts-ignore
+    browser = await puppeteer.launch(options);
 
-  const options = {
-    headless: 'new',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--show-paint-rects',
-    ],
-    viewport: {
-      width: 1920, height: 1080, isMobile: false,
-    },
-    timeout: 180000,
-    ignoreHTTPSErrors: true,
-    ignoreDefaultArgs: ['--disable-gpu'],
-  };
+    browser.on('disconnected', () => {
+      browser = null;
+    });
 
-  // @ts-ignore
-  return puppeteer.launch(options);
+  }
+  return browser;
 }
 
 /**

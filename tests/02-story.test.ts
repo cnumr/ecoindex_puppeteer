@@ -17,26 +17,37 @@ const {expect} = require('chai');
 describe('Get story metrics', async () => {
   it(`Should give story metrics.`, async () => {
     const browser = await getBrowser();
+    const page = await browser.newPage();
+
     let steps: EcoIndexStoryStep[] = [];
     try {
       const ecoindexStory = new EcoIndexStory();
-      const page = await browser.newPage();
+
+      // Listen all events.
+      ecoindexStory.on(null, (event: string) => {
+        console.log(`Event : `, event)
+      })
+
+      // Define story.
       await ecoindexStory.start(page);
       await page.goto('https://www.thomas-secher.fr');
       await scrollToBottom(page);
       await ecoindexStory.addStep('first page');
-
       await page.click('a.logo');
       await scrollToBottom(page);
       await ecoindexStory.stop('last page');
-      steps = await ecoindexStory.getSteps();
+
+      // Get metrics.
+      steps = ecoindexStory.getSteps();
     } catch (err) {
       steps = [];
     }
+
+    // Close.
+    await page.close();
     await browser.close();
 
     expect(steps).to.be.an('array');
-
     for (const step of steps) {
       checkMetrics(step.getMetrics());
     }

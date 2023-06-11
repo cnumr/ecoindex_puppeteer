@@ -1,10 +1,4 @@
-import {scrollPageToBottom} from 'puppeteer-autoscroll-down';
-import {Page} from 'puppeteer-core';
-
-import {AbstractEventsClass} from './utils/AbstractEventsClass';
 import {
-  ECOINDEX_HANDLER_OPTIONS,
-  EcoIndexDataHandler,
   EcoIndexMetrics,
   scrollToBottom,
   wait,
@@ -17,17 +11,19 @@ import {EcoIndexStory} from './EcoIndexStory';
  * @type {{AFTER_INIT: string, PAGE_LOADED: string, AFTER_SCROLL: string, AFTER_VISIT: string}}
  */
 export const ECOINDEX_PAGE_EVENTS = {
-  AFTER_INIT: 'EcoIndex Page - After initialization',
-  AFTER_VISIT: 'EcoIndex Page - After visit url',
-  PAGE_LOADED: 'EcoIndex Page - Pages has been loaded',
+  PAGE_LOADED: 'EcoIndex Page - Page has been loaded',
   AFTER_SCROLL: 'EcoIndex Page - After scroll',
-  TIMEOUT_REACHED: 'EcoIndex Page - Timeout reached on page load',
 };
 
 /**
  * Get the ecoindex raw parameters for a specific page.
  */
-export class EcoIndexPage extends AbstractEventsClass {
+export class EcoIndexPage {
+
+  constructor(
+    private story = new EcoIndexStory(),
+  ) {
+  }
 
   /**
    * Return the metrics for a specific URL.
@@ -38,13 +34,49 @@ export class EcoIndexPage extends AbstractEventsClass {
    * @returns {Promise<EcoIndexMetrics | undefined>}
    */
   async getMetrics(page: any, url: string, settings = {}): Promise<EcoIndexMetrics | undefined> {
-    const story = new EcoIndexStory();
-    await story.start(page, settings);
+    this.story.clear();
+    const eventData = {story: this.story, page: page};
+    await this.story.start(page, settings);
     await page.goto(url);
+    await this.story.trigger(ECOINDEX_PAGE_EVENTS.PAGE_LOADED, eventData);
     await scrollToBottom(page);
+    await this.trigger(ECOINDEX_PAGE_EVENTS.AFTER_SCROLL, eventData);
     await wait();
-    await story.stop(page);
+    await this.story.stop(page);
 
-    return story.getSteps().pop()?.getMetrics();
+    return this.story.getSteps().pop()?.getMetrics();
   }
+
+  /**
+   * Trigger events.
+   *
+   * @param {string} id
+   * @param data
+   * @returns {Promise<void>}
+   */
+  async trigger(id: string, data: any = {}): Promise<void> {
+    return this.story.trigger(id, data);
+  }
+
+  /**
+   * Listen events. If no id, all events will be triggered.
+   *
+   * @param {string | null} id
+   * @param callback
+   */
+  on(id: string | null = null, callback: any) {
+    return this.story.on(id, callback);
+  }
+}
+
+/**
+ * Return page metrics.
+ *
+ * @param page
+ * @param {string} url
+ * @returns {Promise<EcoIndexMetrics | undefined>}
+ */
+export async function getPageMetrics(page: any, url: string) {
+  const ecoIndexPage = new EcoIndexPage();
+  return ecoIndexPage.getMetrics(page, url);
 }
