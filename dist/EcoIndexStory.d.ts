@@ -70,9 +70,10 @@ export declare class EcoIndexStory extends AbstractEventsClass {
      * Stop story.
      *
      * @param {string} name
+     * @param addStep
      * @returns {Promise<void>}
      */
-    stop(name: string): Promise<void>;
+    stop(name: string, addStep?: boolean): Promise<void>;
     /**
      * Return the metrics of the story.
      *

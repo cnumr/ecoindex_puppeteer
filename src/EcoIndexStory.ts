@@ -108,10 +108,13 @@ export class EcoIndexStory extends AbstractEventsClass {
    * Stop story.
    *
    * @param {string} name
+   * @param addStep
    * @returns {Promise<void>}
    */
-  async stop(name: string): Promise<void> {
-    await this.addStep(name);
+  async stop(name: string, addStep = true): Promise<void> {
+    if (addStep) {
+      await this.addStep(name);
+    }
     await this.trigger(ECOINDEX_STORY_EVENTS.ON_STOP, this.eventData);
     return this.handler?.stop();
   }

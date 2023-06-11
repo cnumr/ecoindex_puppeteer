@@ -103,12 +103,15 @@ class EcoIndexStory extends AbstractEventsClass_1.AbstractEventsClass {
      * Stop story.
      *
      * @param {string} name
+     * @param addStep
      * @returns {Promise<void>}
      */
-    stop(name) {
+    stop(name, addStep = true) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.addStep(name);
+            if (addStep) {
+                yield this.addStep(name);
+            }
             yield this.trigger(exports.ECOINDEX_STORY_EVENTS.ON_STOP, this.eventData);
             return (_a = this.handler) === null || _a === void 0 ? void 0 : _a.stop();
         });
