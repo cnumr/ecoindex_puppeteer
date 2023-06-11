@@ -1,5 +1,3 @@
 node_modules
 dist
-data
-
-src/modules/ecoindex/*.js
+tests

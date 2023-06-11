@@ -17,20 +17,26 @@ export const ECOINDEX_STORY_EVENTS = {
 /**
  * Step structure.
  */
-class EcoIndexStoryStep {
+export class EcoIndexStoryStep {
 
   public date: Date;
 
   constructor(
     public name: string,
-    public ecoindex: EcoIndexMetrics | undefined,
+    public metrics: EcoIndexMetrics | undefined,
   ) {
     this.date = new Date();
   }
 
-  hasData(): boolean {
-    return this.ecoindex?.hasData() || false;
+  /**
+   * Return the step metrics.
+   *
+   * @returns {EcoIndexMetrics | undefined}
+   */
+  getMetrics(): EcoIndexMetrics | undefined {
+    return this.metrics;
   }
+
 }
 
 /**
@@ -70,7 +76,7 @@ export class EcoIndexStory extends AbstractEventsClass {
    *
    * @returns {Promise<void>}
    */
-  async start(page: Page, conf = {}): Promise<void> {
+  async start(page: any, conf = {}): Promise<void> {
     const options = {...ECOINDEX_HANDLER_OPTIONS, ...conf};
     this.handler = new EcoIndexDataHandler(page, options);
     this.eventData = {page: page, options: options, handler: this.handler};
@@ -90,8 +96,8 @@ export class EcoIndexStory extends AbstractEventsClass {
    */
   async addStep(name: string): Promise<void> {
     await this.trigger(ECOINDEX_STORY_EVENTS.BEFORE_ADD_STEP, this.eventData);
-    const ecoindex = await this.handler?.getRawMetrics();
-    const step = new EcoIndexStoryStep(name, ecoindex);
+    const metrics = await this.handler?.getRawMetrics();
+    const step = new EcoIndexStoryStep(name, metrics);
     this.steps.push(step);
     this.handler?.clearResults();
     await this.trigger(ECOINDEX_STORY_EVENTS.AFTER_ADD_STEP, {...this.eventData, ...{step: step}});
@@ -113,7 +119,7 @@ export class EcoIndexStory extends AbstractEventsClass {
    *
    * @returns {EcoIndexStoryStep[]}
    */
-  getMetrics(): EcoIndexStoryStep[] {
+  getSteps(): EcoIndexStoryStep[] {
     return this.steps;
   }
 }

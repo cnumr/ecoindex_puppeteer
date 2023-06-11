@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+## Shortcut to execute yarn methods in cli container.
+##
+## Usage: fin yarn *
+
+#: exec_target = cli
+
+yarn $*
+
