@@ -1,6 +1,6 @@
 {
-  "watch": ["src"],
+  "watch": ["src/**/*.ts", "tests"],
   "ext": ".ts,.js",
   "ignore": [],
-  "exec": "tsc && npm run lint"
+  "exec": "tsc --declaration && npm run lint  || exit 1"
 }

@@ -2,8 +2,9 @@
  * Ecoindex data structure.
  */
 import {CDPSession, Handler, Page} from 'puppeteer-core';
+import {scrollPageToBottom} from 'puppeteer-autoscroll-down';
 
-const convert = require('convert-pro');
+const {default: convert} = require('convert-pro');
 
 /**
  * EcoIndex metrics.
@@ -12,7 +13,7 @@ export class EcoIndexMetrics {
   constructor(
     public dom: number = 0,
     public request: number = 0,
-    private _rawBitSize: number | undefined = undefined,
+    public bitSize: number | undefined = undefined,
   ) {
   }
 
@@ -22,16 +23,24 @@ export class EcoIndexMetrics {
    * @returns {boolean}
    */
   public hasData(): boolean {
-    return this._rawBitSize !== undefined;
+    return this.bitSize !== undefined;
   }
 
   /**
-   * Set raw size (bit count).
-   *
-   * @param {number} value
+   * Return the dom elements count
+   * @returns {number}
    */
-  set bitSize(value: number) {
-    this._rawBitSize = value;
+  getDomElementsCount() {
+    return this.dom;
+  }
+
+  /**
+   * Return the requests count.
+   *
+   * @returns {number}
+   */
+  getRequestsCount() {
+    return this.request;
   }
 
   /**
@@ -39,17 +48,8 @@ export class EcoIndexMetrics {
    *
    * @returns {number | undefined}
    */
-  get size(): number | undefined {
-    return convert.bytes(this._rawBitSize || 0, 'KB');
-  }
-
-  /**
-   * Return the bit size (bit).
-   *
-   * @returns {number | undefined}
-   */
-  getBitSize(): number | undefined {
-    return this._rawBitSize;
+  getSize(): number | undefined {
+    return convert.bytes(this.bitSize || 0, 'KB');
   }
 
 }
@@ -105,11 +105,6 @@ export class EcoIndexDataHandler {
   async init() {
     this.clearResults();
 
-    // disabling cache
-    const client = await this.page.target()
-      .createCDPSession();
-    await client.send('Network.clearBrowserCache');
-
     // Init network events.
     await this._initNetworksEvents();
   }
@@ -120,12 +115,10 @@ export class EcoIndexDataHandler {
    * @returns {Promise<void>}
    */
   async _initNetworksEvents(): Promise<void> {
-    this.rawMetrics.request = 0;
-    this.rawMetrics.bitSize = 0;
     this.devTools = await this.page.target()
       .createCDPSession();
+    await this.devTools.send('Network.clearBrowserCache');
     await this.devTools.send('Network.enable');
-
     this.devTools?.on('Network.loadingFinished', this.onNetworkLoadingFinished);
   }
 
@@ -163,6 +156,7 @@ export class EcoIndexDataHandler {
    */
   clearResults() {
     this.rawMetrics = new EcoIndexMetrics();
+    this.rawMetrics.bitSize = 0;
   }
 
   /**
@@ -171,4 +165,33 @@ export class EcoIndexDataHandler {
   stop() {
     this.devTools?.off('Network.loadingFinished', this.onNetworkLoadingFinished);
   }
+}
+
+/**
+ * Scroll to bottom of the page.
+ *
+ * @param page
+ * @returns {Promise<void>}
+ */
+export async function scrollToBottom(page: any): Promise<void> {
+  const bodyHeight = await page.evaluate(() => document.body.clientHeight);
+  const windowHeight = await page.evaluate(() => window.innerHeight);
+  for (let i = 0; i < Math.floor(bodyHeight / windowHeight) + 2; i++) {
+    await scrollPageToBottom(page, {
+      size: windowHeight,
+      delay: 200,
+    });
+  }
+}
+
+/**
+ * Wait milliseconds.
+ *
+ * @param {number} timeout
+ * @returns {Promise<void>}
+ */
+export async function wait(timeout = 3000): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(), timeout);
+  });
 }

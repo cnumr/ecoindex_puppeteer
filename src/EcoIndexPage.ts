@@ -1,8 +1,9 @@
-import {scrollPageToBottom} from 'puppeteer-autoscroll-down';
-import {Page} from 'puppeteer-core';
-
-import {AbstractEventsClass} from './utils/AbstractEventsClass';
-import {ECOINDEX_HANDLER_OPTIONS, EcoIndexDataHandler} from './utils/EcoIndexDataHandler';
+import {
+  EcoIndexMetrics,
+  scrollToBottom,
+  wait,
+} from './utils/EcoIndexDataHandler';
+import {EcoIndexStory} from './EcoIndexStory';
 
 /**
  * Ecoindex page Events.
@@ -10,68 +11,72 @@ import {ECOINDEX_HANDLER_OPTIONS, EcoIndexDataHandler} from './utils/EcoIndexDat
  * @type {{AFTER_INIT: string, PAGE_LOADED: string, AFTER_SCROLL: string, AFTER_VISIT: string}}
  */
 export const ECOINDEX_PAGE_EVENTS = {
-  AFTER_INIT: 'EcoIndex Page - After initialization',
-  AFTER_VISIT: 'EcoIndex Page - After visit url',
-  PAGE_LOADED: 'EcoIndex Page - Pages has been loaded',
+  PAGE_LOADED: 'EcoIndex Page - Page has been loaded',
   AFTER_SCROLL: 'EcoIndex Page - After scroll',
-  TIMEOUT_REACHED: 'EcoIndex Page - Timeout reached on page load',
 };
 
 /**
  * Get the ecoindex raw parameters for a specific page.
  */
-export class EcoIndexPage extends AbstractEventsClass {
+export class EcoIndexPage {
+
+  constructor(
+    private story = new EcoIndexStory(),
+  ) {
+  }
 
   /**
    * Return the metrics for a specific URL.
    *
-   * @param {Page} page
+   * @param page
    * @param {string} url
-   * @param {any} settings
-   * @returns {Promise<EcoindexStructure>}
+   * @param {{}} settings
+   * @returns {Promise<EcoIndexMetrics | undefined>}
    */
-  async getMetrics(page: Page, url: string, settings = {}) {
-    const options = {...ECOINDEX_HANDLER_OPTIONS, ...settings};
-    const handler = new EcoIndexDataHandler(page, options);
-    const eventData = {page: page, url: url, options: options, handler: handler};
-
-    await handler.init();
-    await this.trigger(ECOINDEX_PAGE_EVENTS.AFTER_INIT, eventData);
-
-    // Load the page.
-    await page.goto(url, {timeout: options.timeout});
-    await this.trigger(ECOINDEX_PAGE_EVENTS.AFTER_VISIT, eventData);
-    try {
-      await page.waitForNavigation({waitUntil: 'domcontentloaded', timeout: options.timeout});
-    } catch (err) {
-      await this.trigger(ECOINDEX_PAGE_EVENTS.TIMEOUT_REACHED, eventData);
-    }
-    await this.trigger(ECOINDEX_PAGE_EVENTS.PAGE_LOADED, eventData);
-
-    // Scroll to bottom in order to load all imgs dependencies.
-    await this.scrollToBottom(page);
+  async getMetrics(page: any, url: string, settings = {}): Promise<EcoIndexMetrics | undefined> {
+    this.story.clear();
+    const eventData = {story: this.story, page: page};
+    await this.story.start(page, settings);
+    await page.goto(url);
+    await this.story.trigger(ECOINDEX_PAGE_EVENTS.PAGE_LOADED, eventData);
+    await scrollToBottom(page);
     await this.trigger(ECOINDEX_PAGE_EVENTS.AFTER_SCROLL, eventData);
+    await wait();
+    await this.story.stop(page);
 
-    // Get result.
-    const result = handler.getRawMetrics();
-    handler.stop();
-    return result;
+    return this.story.getSteps().pop()?.getMetrics();
   }
 
   /**
-   * Scroll to bottom of the page.
+   * Trigger events.
    *
-   * @param page
+   * @param {string} id
+   * @param data
    * @returns {Promise<void>}
    */
-  protected async scrollToBottom(page: Page) {
-    const bodyHeight = await page.evaluate(() => document.body.clientHeight);
-    const windowHeight = await page.evaluate(() => window.innerHeight);
-    for (let i = 0; i < Math.floor(bodyHeight / windowHeight) + 2; i++) {
-      await scrollPageToBottom(page, {
-        size: windowHeight,
-        delay: 200,
-      });
-    }
+  async trigger(id: string, data: any = {}): Promise<void> {
+    return this.story.trigger(id, data);
   }
+
+  /**
+   * Listen events. If no id, all events will be triggered.
+   *
+   * @param {string | null} id
+   * @param callback
+   */
+  on(id: string | null = null, callback: any) {
+    return this.story.on(id, callback);
+  }
+}
+
+/**
+ * Return page metrics.
+ *
+ * @param page
+ * @param {string} url
+ * @returns {Promise<EcoIndexMetrics | undefined>}
+ */
+export async function getPageMetrics(page: any, url: string) {
+  const ecoIndexPage = new EcoIndexPage();
+  return ecoIndexPage.getMetrics(page, url);
 }
