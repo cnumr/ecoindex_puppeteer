@@ -2,7 +2,14 @@ import {scrollPageToBottom} from 'puppeteer-autoscroll-down';
 import {Page} from 'puppeteer-core';
 
 import {AbstractEventsClass} from './utils/AbstractEventsClass';
-import {ECOINDEX_HANDLER_OPTIONS, EcoIndexDataHandler, scrollToBottom} from './utils/EcoIndexDataHandler';
+import {
+  ECOINDEX_HANDLER_OPTIONS,
+  EcoIndexDataHandler,
+  EcoIndexMetrics,
+  scrollToBottom,
+  wait,
+} from './utils/EcoIndexDataHandler';
+import {EcoIndexStory} from './EcoIndexStory';
 
 /**
  * Ecoindex page Events.
@@ -25,37 +32,19 @@ export class EcoIndexPage extends AbstractEventsClass {
   /**
    * Return the metrics for a specific URL.
    *
-   * @param {any} page
+   * @param page
    * @param {string} url
-   * @param {any} settings
-   * @returns {Promise<EcoindexStructure>}
+   * @param {{}} settings
+   * @returns {Promise<EcoIndexMetrics | undefined>}
    */
-  async getMetrics(page: any, url: string, settings = {}) {
-    const options = {...ECOINDEX_HANDLER_OPTIONS, ...settings};
-    const handler = new EcoIndexDataHandler(page, options);
-    await handler.init();
-    const eventData = {page: page, url: url, options: options, handler: handler};
-
-    // await handler.init();
-    await this.trigger(ECOINDEX_PAGE_EVENTS.AFTER_INIT, eventData);
-
-    // Load the page.
-    await page.goto(url, {timeout: options.timeout});
-    await this.trigger(ECOINDEX_PAGE_EVENTS.AFTER_VISIT, eventData);
-    try {
-      await page.waitForNavigation({waitUntil: 'domcontentloaded', timeout: options.timeout});
-    } catch (err) {
-      await this.trigger(ECOINDEX_PAGE_EVENTS.TIMEOUT_REACHED, eventData);
-    }
-    await this.trigger(ECOINDEX_PAGE_EVENTS.PAGE_LOADED, eventData);
-
-    // Scroll to bottom in order to load all imgs dependencies.
+  async getMetrics(page: any, url: string, settings = {}): Promise<EcoIndexMetrics | undefined> {
+    const story = new EcoIndexStory();
+    await story.start(page, settings);
+    await page.goto(url);
     await scrollToBottom(page);
-    await this.trigger(ECOINDEX_PAGE_EVENTS.AFTER_SCROLL, eventData);
+    await wait();
+    await story.stop(page);
 
-    // Get result.
-    const result = await handler.getRawMetrics();
-    handler.stop();
-    return result;
+    return story.getSteps().pop()?.getMetrics();
   }
 }

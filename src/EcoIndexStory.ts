@@ -72,12 +72,12 @@ export class EcoIndexStory extends AbstractEventsClass {
    * Initialize and start a story.
    *
    * @param {Page} page
-   * @param {{}} conf
+   * @param {{}} settings
    *
    * @returns {Promise<void>}
    */
-  async start(page: any, conf = {}): Promise<void> {
-    const options = {...ECOINDEX_HANDLER_OPTIONS, ...conf};
+  async start(page: any, settings = {}): Promise<void> {
+    const options = {...ECOINDEX_HANDLER_OPTIONS, ...settings};
     this.handler = new EcoIndexDataHandler(page, options);
     this.eventData = {page: page, options: options, handler: this.handler};
 

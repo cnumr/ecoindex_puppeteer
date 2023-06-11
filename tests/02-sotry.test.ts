@@ -19,10 +19,11 @@ describe('Get story metrics', async () => {
     const browser = await getBrowser();
     let steps: EcoIndexStoryStep[] = [];
     try {
-      const page = await browser.newPage();
       const ecoindexStory = new EcoIndexStory();
+      const page = await browser.newPage();
       await ecoindexStory.start(page);
-      await page.goto('https://holidev.thomas-secher.fr/holidev.html');
+      await page.goto('https://www.thomas-secher.fr');
+      await scrollToBottom(page);
       await ecoindexStory.addStep('first page');
 
       await page.click('a.logo');

@@ -11,8 +11,6 @@ import {EcoIndexMetrics} from '../src/utils/EcoIndexDataHandler';
 
 import {checkMetrics, getBrowser} from './utils/commons';
 
-const {expect} = require('chai');
-
 describe('Get page metrics', async () => {
   it(`Should give page metrics for a specific URL.`, async () => {
     const browser = await getBrowser();

@@ -183,3 +183,15 @@ export async function scrollToBottom(page: any): Promise<void> {
     });
   }
 }
+
+/**
+ * Wait milliseconds.
+ *
+ * @param {number} timeout
+ * @returns {Promise<void>}
+ */
+export async function wait(timeout = 3000): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(), timeout);
+  });
+}
