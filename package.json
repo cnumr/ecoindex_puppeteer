@@ -1,6 +1,6 @@
 {
   "name": "ecoindex_puppeteer",
-  "version": "1.0.0-rc1",
+  "version": "1.0.0-rc2",
   "description": "Provides puppeteer tools for getting the ecoindex parameters of a page or a user journey.",
   "main": "dist/index.js",
   "scripts": {
