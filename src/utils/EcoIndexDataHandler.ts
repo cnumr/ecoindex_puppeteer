@@ -72,7 +72,9 @@ export class EcoIndexDataHandler {
   protected page: Page;
   protected options: any;
   protected rawMetrics: EcoIndexMetrics;
+  private responsesMap: Map<string, any>;
   private devTools: CDPSession | undefined;
+  private onNetworkResponseReceived: Handler<any>;
   private onNetworkLoadingFinished: Handler<any>;
 
   /**
@@ -89,11 +91,21 @@ export class EcoIndexDataHandler {
     };
 
     this.rawMetrics = new EcoIndexMetrics();
+    this.responsesMap = new Map();
+
+    // Init on response callbacks.
+    this.onNetworkResponseReceived = (event: any) => {
+      this.responsesMap.set(event.requestId, event.response);
+    };
 
     // Init networks callbacks.
     this.onNetworkLoadingFinished = (event: any) => {
-      this.rawMetrics.request++;
-      this.rawMetrics.bitSize += event.encodedDataLength;
+      const response = this.responsesMap.get(event.requestId);
+      const isCachedOrData = response.fromDiskCache || response.fromServiceWorker || response.fromPrefetchCache || response.protocol === 'data';
+      if (!isCachedOrData) {
+        this.rawMetrics.request++;
+        this.rawMetrics.bitSize += event.encodedDataLength;
+      }
     };
   }
 
@@ -120,6 +132,7 @@ export class EcoIndexDataHandler {
     await this.devTools.send('Network.clearBrowserCache');
     await this.devTools.send('Network.enable');
     this.devTools?.on('Network.loadingFinished', this.onNetworkLoadingFinished);
+    this.devTools?.on('Network.responseReceived', this.onNetworkResponseReceived);
   }
 
   /**
@@ -164,6 +177,7 @@ export class EcoIndexDataHandler {
    */
   stop() {
     this.devTools?.off('Network.loadingFinished', this.onNetworkLoadingFinished);
+    this.devTools?.off('Network.responseReceived', this.onNetworkResponseReceived);
   }
 }
 
