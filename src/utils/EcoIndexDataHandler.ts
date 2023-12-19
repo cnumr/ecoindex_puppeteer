@@ -101,6 +101,7 @@ export class EcoIndexDataHandler {
     // Init networks callbacks.
     this.onNetworkLoadingFinished = (event: any) => {
       const response = this.responsesMap.get(event.requestId);
+      if (!response) return;
       const isCachedOrData = response.fromDiskCache || response.fromServiceWorker || response.fromPrefetchCache || response.protocol === 'data';
       if (!isCachedOrData) {
         this.rawMetrics.request++;
